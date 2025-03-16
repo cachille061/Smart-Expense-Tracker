@@ -1,0 +1,53 @@
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="expenseTable">
+        <!-- New expenses will be added here -->
+    </tbody>
+</table>
+
+<form id="expenseForm">
+    <div class="form-group">
+        <label for="name">Expense Name:</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Expense</button>
+</form>
+
+<script>
+    document.getElementById("expenseForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("name").value;
+        const amount = parseFloat(document.getElementById("amount").value);
+
+        fetch("/Expense/AddExpense", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, amount })
+        })
+        .then(response => response.json())
+        .then(expense => {
+            const newRow = `<tr>
+                <td>${expense.id}</td>
+                <td>${expense.name}</td>
+                <td>$${expense.amount.toFixed(2)}</td>
+                <td>${new Date(expense.date).toLocaleDateString()}</td>
+            </tr>`;
+            document.getElementById("expenseTable").innerHTML += newRow;
+            document.getElementById("expenseForm").reset();
+        });
+    });
+</script>
