@@ -3115,11 +3115,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\llama\\OneDrive\\Desktop\\CSharp\\myCSharpProject\\SmartExpenseTracker\\SmartExpenseTracker.csproj",
+      "projectUniqueName": "C:\\Users\\llama\\OneDrive\\Desktop\\Smart-Expense-Tracker\\Smart-Expense-Tracker\\SmartExpenseTracker.csproj",
       "projectName": "SmartExpenseTracker",
-      "projectPath": "C:\\Users\\llama\\OneDrive\\Desktop\\CSharp\\myCSharpProject\\SmartExpenseTracker\\SmartExpenseTracker.csproj",
+      "projectPath": "C:\\Users\\llama\\OneDrive\\Desktop\\Smart-Expense-Tracker\\Smart-Expense-Tracker\\SmartExpenseTracker.csproj",
       "packagesPath": "C:\\Users\\llama\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\llama\\OneDrive\\Desktop\\CSharp\\myCSharpProject\\SmartExpenseTracker\\obj\\",
+      "outputPath": "C:\\Users\\llama\\OneDrive\\Desktop\\Smart-Expense-Tracker\\Smart-Expense-Tracker\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\llama\\AppData\\Roaming\\NuGet\\NuGet.Config"

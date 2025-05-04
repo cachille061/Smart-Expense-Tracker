@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XPlZWFNBoWc=",
+  "dgSpecHash": "FpLAauFHH7M=",
   "success": true,
-  "projectFilePath": "C:\\Users\\llama\\OneDrive\\Desktop\\CSharp\\myCSharpProject\\SmartExpenseTracker\\SmartExpenseTracker.csproj",
+  "projectFilePath": "C:\\Users\\llama\\OneDrive\\Desktop\\Smart-Expense-Tracker\\Smart-Expense-Tracker\\SmartExpenseTracker.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\llama\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\llama\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
