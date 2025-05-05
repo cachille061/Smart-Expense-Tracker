@@ -8,12 +8,12 @@ namespace SmartExpenseTracker.Models
     public class Expense
     {
         public int Id { get; set; } // Unique ID for the expense
-        public string Name { get; set; } // Name of the expense (e.g., "Groceries")
+        public string? Name { get; set; } // Name of the expense (e.g., "Groceries")
         public decimal Amount { get; set; } // Amount spent
         public DateTime Date { get; set; } // Date of the expense
 
         [Required]
-        public string Category { get; set; } // Expense category (Food, Bills, etc.)
+        public string? Category { get; set; } // Expense category (Food, Bills, etc.)
 
         // Predefined categories (Users must select from this list)
         public static readonly List<string> AllowedCategories = new List<string>
@@ -27,6 +27,7 @@ namespace SmartExpenseTracker.Models
             "Education",
             "Housing",
             "Savings",
+            "Investments",
             "Other"
         };
 
