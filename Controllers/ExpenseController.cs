@@ -9,9 +9,11 @@ namespace SmartExpenseTracker.Controllers
 {
     [ApiController] // Marks this as a REST API controller
     [Route("api/expenses")] // Base route for API endpoints
+    [ResponseCache(Duration = 60)] // Cache responses for 60 seconds
     public class ExpenseController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private const int DefaultPageSize = 20;
 
         public ExpenseController(ApplicationDbContext context)
         {
@@ -27,50 +29,73 @@ namespace SmartExpenseTracker.Controllers
             decimal? maxPrice = null, 
             DateTime? startDate = null, 
             DateTime? endDate = null, 
-            string? category = null)
+            string? category = null,
+            int page = 1,
+            int pageSize = DefaultPageSize)
         {
-            IQueryable<Expense> query = _context.Expenses;
+            // Validate pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = DefaultPageSize;
 
-            // 🔹 Apply Price Range Filtering
+            // Build query with AsNoTracking for read-only operations
+            var query = _context.Expenses.AsNoTracking();
+
+            // Apply filters
             if (minPrice.HasValue)
                 query = query.Where(e => e.Amount >= minPrice.Value);
 
             if (maxPrice.HasValue)
                 query = query.Where(e => e.Amount <= maxPrice.Value);
 
-            // 🔹 Apply Date Range Filtering
             if (startDate.HasValue)
                 query = query.Where(e => e.Date >= startDate.Value);
 
             if (endDate.HasValue)
                 query = query.Where(e => e.Date <= endDate.Value);
 
-            // 🔹 Apply Category Filtering
             if (!string.IsNullOrWhiteSpace(category) && Expense.AllowedCategories.Contains(category))
                 query = query.Where(e => e.Category == category);
 
-            // 🔹 Apply Sorting
-            switch (sortBy?.ToLower())
+            // Apply sorting
+            query = sortBy?.ToLower() switch
             {
-                case "name":
-                    query = (order?.ToLower() == "desc") ? query.OrderByDescending(e => e.Name) : query.OrderBy(e => e.Name);
-                    break;
-                case "amount":
-                    query = (order?.ToLower() == "desc") ? query.OrderByDescending(e => e.Amount) : query.OrderBy(e => e.Amount);
-                    break;
-                case "date":
-                    query = (order?.ToLower() == "desc") ? query.OrderByDescending(e => e.Date) : query.OrderBy(e => e.Date);
-                    break;
-            }
+                "name" => order?.ToLower() == "desc" 
+                    ? query.OrderByDescending(e => e.Name) 
+                    : query.OrderBy(e => e.Name),
+                "amount" => order?.ToLower() == "desc" 
+                    ? query.OrderByDescending(e => e.Amount) 
+                    : query.OrderBy(e => e.Amount),
+                "date" => order?.ToLower() == "desc" 
+                    ? query.OrderByDescending(e => e.Date) 
+                    : query.OrderBy(e => e.Date),
+                _ => query.OrderByDescending(e => e.Date) // Default sorting
+            };
 
-            return await query.ToListAsync();
+            // Get total count for pagination
+            var totalCount = await query.CountAsync();
+            
+            // Apply pagination
+            var expenses = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Add pagination metadata to response headers
+            Response.Headers.Add("X-Total-Count", totalCount.ToString());
+            Response.Headers.Add("X-Total-Pages", ((totalCount + pageSize - 1) / pageSize).ToString());
+            Response.Headers.Add("X-Current-Page", page.ToString());
+
+            return Ok(expenses);
         }
 
         // GET: api/expenses/{id} → Get a specific expense by ID
         [HttpGet("{id}")]
         public async Task<ActionResult<Expense>> GetExpenseById(int id)
         {
-            var expense = await _context.Expenses.FindAsync(id);
+            var expense = await _context.Expenses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == id);
+
             if (expense == null)
                 return NotFound(new { message = "Expense not found" });
 
@@ -78,6 +103,7 @@ namespace SmartExpenseTracker.Controllers
         }
 
         [HttpGet("categories")] // Ensure the correct route
+        [ResponseCache(Duration = 3600)] // Cache categories for 1 hour
         public ActionResult<IEnumerable<string>> GetCategories()
         {
             return Ok(Expense.AllowedCategories);
@@ -111,7 +137,12 @@ namespace SmartExpenseTracker.Controllers
             if (id != updatedExpense.Id)
                 return BadRequest();
 
-            _context.Entry(updatedExpense).State = EntityState.Modified;
+            var existingExpense = await _context.Expenses.FindAsync(id);
+            if (existingExpense == null)
+                return NotFound();
+
+            // Update only modified properties
+            _context.Entry(existingExpense).CurrentValues.SetValues(updatedExpense);
 
             try
             {
@@ -119,10 +150,9 @@ namespace SmartExpenseTracker.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Expenses.Any(e => e.Id == id))
+                if (!await _context.Expenses.AnyAsync(e => e.Id == id))
                     return NotFound();
-                else
-                    throw;
+                throw;
             }
 
             return NoContent();
